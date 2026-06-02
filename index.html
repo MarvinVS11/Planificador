@@ -157,19 +157,26 @@
   .empty-state h3 { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:6px; }
   .empty-state p { color:var(--muted); font-size:.875rem; }
 
-  ::-webkit-scrollbar { width:6px; }
-  ::-webkit-scrollbar-track { background:var(--bg); }
-  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-
-  @media (max-width:600px) {
-    .header-right { gap:6px; }
-    .stat-pill { padding:4px 9px; font-size:.68rem; }
-    .parent-header { gap:10px; padding:12px 14px; }
-    .subtasks-wrap { padding:0 10px 12px; }
-    .subtask-row { grid-template-columns:1fr; }
-    .subtask-right { justify-content:flex-end; }
-    .form-grid2 { grid-template-columns:1fr; }
-    .sync-indicator span { display:none; }
+  /* FAB - Floating Action Button */
+  .fab {
+    position: fixed; bottom: 28px; right: 28px; z-index: 150;
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 50px;
+    padding: 14px 22px; font-size: .875rem; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 6px 24px rgba(91,140,255,.45);
+    transform: translateY(100px) scale(0.8);
+    opacity: 0; pointer-events: none;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s ease;
+  }
+  .fab.visible {
+    transform: translateY(0) scale(1);
+    opacity: 1; pointer-events: all;
+  }
+  .fab:hover { box-shadow: 0 10px 32px rgba(91,140,255,.6); transform: translateY(-2px) scale(1); }
+  @media (max-width: 600px) {
+    .fab { bottom: 20px; right: 16px; padding: 13px 18px; font-size: .82rem; }
   }
 </style>
 </head>
@@ -209,6 +216,12 @@
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openModal('parent')">
+  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Nueva Tarea
+</button>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
@@ -599,6 +612,15 @@ document.addEventListener('keydown',e=>{
   if (e.key==='Enter' && document.getElementById('modalOverlay').classList.contains('open'))
     if (document.activeElement.tagName!=='BUTTON') saveTask();
 });
+
+/* ── FAB visibility ── */
+const fabEl = document.getElementById('fab');
+const mainBtn = document.querySelector('.btn-add-parent');
+const fabObserver = new IntersectionObserver(
+  ([entry]) => fabEl.classList.toggle('visible', !entry.isIntersecting),
+  { threshold: 0 }
+);
+fabObserver.observe(mainBtn);
 
 /* ── INIT ── */
 loadAll();
