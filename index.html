@@ -115,7 +115,7 @@
 
   /* ── COMMENTS PANEL ── */
   .comments-panel{border-top:1px solid var(--border);background:rgba(30,34,48,.5);overflow:hidden;max-height:0;transition:max-height .35s ease;}
-  .comments-panel.open{max-height:600px;}
+  .sub-comments-panel{border-top:1px solid rgba(255,255,255,.05);background:rgba(13,15,20,.4);overflow:hidden;max-height:0;transition:max-height .35s ease;}
   .comments-inner{padding:16px 20px 20px;}
   .comments-title{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
   .comments-title svg{width:14px;height:14px;stroke:var(--accent2);}
@@ -136,8 +136,7 @@
   .btn-comment-send:disabled{opacity:.4;cursor:not-allowed;}
 
   /* SUBTASK COMMENTS */
-  .sub-comments-panel{border-top:1px solid rgba(255,255,255,.05);background:rgba(13,15,20,.4);overflow:hidden;max-height:0;transition:max-height .35s ease;}
-  .sub-comments-panel.open{max-height:500px;}
+  .sub-comments-inner{padding:10px 14px 14px;}
   .sub-comments-inner{padding:10px 14px 14px;}
 
   /* COMMENT TOGGLE BTN */
@@ -490,20 +489,11 @@ function toggleComments(panelId,e){
   if(e)e.stopPropagation();
   const panel=document.getElementById(panelId);
   if(!panel)return;
-  const isOpen=panel.classList.contains('open');
+  const isOpen=panel.style.maxHeight&&panel.style.maxHeight!=='0px';
   if(isOpen){
-    // Collapse: set explicit height then animate to 0
-    panel.style.maxHeight=panel.scrollHeight+'px';
-    panel.classList.remove('open');
-    requestAnimationFrame(()=>{ panel.style.maxHeight='0'; });
-    panel.addEventListener('transitionend',()=>{ panel.style.maxHeight=''; },{once:true});
-  }else{
-    // Expand: remove override, add class, set height to scrollHeight
     panel.style.maxHeight='0';
-    panel.classList.add('open');
-    panel.style.maxHeight=panel.scrollHeight+'px';
-    panel.addEventListener('transitionend',()=>{ panel.style.maxHeight=''; },{once:true});
-    // Focus textarea
+  }else{
+    panel.style.maxHeight='800px';
     const ta=panel.querySelector('.comment-textarea');
     if(ta)setTimeout(()=>ta.focus(),350);
   }
@@ -530,7 +520,7 @@ async function addComment(refId,refType,e){
   // Re-open panel after render
   setTimeout(()=>{
     const panel=document.getElementById(panelId);
-    if(panel)panel.classList.add('open');
+    if(panel)panel.style.maxHeight='800px';
   },30);
   showToast('💬 Comentario agregado');
   btn.disabled=false;
