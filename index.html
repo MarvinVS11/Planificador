@@ -139,7 +139,16 @@
   .modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; width:100%; max-width:480px; padding:28px; transform:scale(.96); transition:transform .2s; box-shadow:0 24px 80px rgba(0,0,0,.5); }
   .modal-overlay.open .modal { transform:scale(1); }
   @media (max-width:540px) { .modal { padding:20px 16px; border-radius:14px; } }
-  .modal-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:22px; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:10px; }
+  .parent-ref {
+    display:flex; align-items:center; gap:7px;
+    background:rgba(91,140,255,.08); border:1px solid rgba(91,140,255,.2);
+    border-radius:8px; padding:8px 12px; margin-bottom:18px;
+    font-size:.78rem; color:var(--muted);
+  }
+  .parent-ref svg { flex-shrink:0; stroke:var(--accent); }
+  .parent-ref span { color:var(--muted); }
+  .parent-ref b { color:var(--accent); font-weight:600; }
   .form-row { margin-bottom:20px; }
   .form-row label { display:block; font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; font-weight:500; }
   .form-row input, .form-row select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.875rem; outline:none; transition:border-color .15s; display:block; }
@@ -240,6 +249,10 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-title" id="modalTitle">Nueva Tarea</div>
+    <div class="parent-ref" id="parentRef" style="display:none">
+      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <span>Proyecto: </span><b id="parentRefName"></b>
+    </div>
     <div class="form-row">
       <label>Nombre</label>
       <input type="text" id="fName" placeholder="Ej: Planificación semestre">
@@ -505,6 +518,10 @@ function openModal(mode, ti, si) {
   document.getElementById('fState').value='none';
   stateRow.style.display='none';
 
+  const parentRef = document.getElementById('parentRef');
+  const parentRefName = document.getElementById('parentRefName');
+  parentRef.style.display = 'none';
+
   if (mode==='parent') {
     title.textContent='✦ Nueva Tarea Principal';
   } else if (mode==='editParent') {
@@ -516,6 +533,9 @@ function openModal(mode, ti, si) {
     document.getElementById('fColor').value=t.color||'p-medium';
   } else if (mode==='sub') {
     stateRow.style.display='block';
+    // Show parent reference banner
+    parentRefName.textContent = tasks[ti].name;
+    parentRef.style.display = 'flex';
     if (si!==undefined) {
       const s=tasks[ti].subs[si];
       title.textContent='Editar Subtarea';
