@@ -136,8 +136,8 @@
   .btn-comment-send:disabled{opacity:.4;cursor:not-allowed;}
 
   /* SUBTASK COMMENTS */
-  .sub-comments-panel{border-top:1px solid rgba(255,255,255,.05);background:rgba(13,15,20,.4);overflow:hidden;max-height:0;transition:max-height .3s ease;}
-  .sub-comments-panel.open{max-height:400px;}
+  .sub-comments-panel{border-top:1px solid rgba(255,255,255,.05);background:rgba(13,15,20,.4);overflow:hidden;max-height:0;transition:max-height .35s ease;}
+  .sub-comments-panel.open{max-height:500px;}
   .sub-comments-inner{padding:10px 14px 14px;}
 
   /* COMMENT TOGGLE BTN */
@@ -490,11 +490,22 @@ function toggleComments(panelId,e){
   if(e)e.stopPropagation();
   const panel=document.getElementById(panelId);
   if(!panel)return;
-  panel.classList.toggle('open');
-  // Focus textarea when opened
-  if(panel.classList.contains('open')){
+  const isOpen=panel.classList.contains('open');
+  if(isOpen){
+    // Collapse: set explicit height then animate to 0
+    panel.style.maxHeight=panel.scrollHeight+'px';
+    panel.classList.remove('open');
+    requestAnimationFrame(()=>{ panel.style.maxHeight='0'; });
+    panel.addEventListener('transitionend',()=>{ panel.style.maxHeight=''; },{once:true});
+  }else{
+    // Expand: remove override, add class, set height to scrollHeight
+    panel.style.maxHeight='0';
+    panel.classList.add('open');
+    panel.style.maxHeight=panel.scrollHeight+'px';
+    panel.addEventListener('transitionend',()=>{ panel.style.maxHeight=''; },{once:true});
+    // Focus textarea
     const ta=panel.querySelector('.comment-textarea');
-    if(ta)setTimeout(()=>ta.focus(),300);
+    if(ta)setTimeout(()=>ta.focus(),350);
   }
 }
 
