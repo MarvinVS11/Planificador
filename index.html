@@ -7,11 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg:#0d0f14; --surface:#161921; --surface2:#1e2230;
-    --border:#2a2f3e; --accent:#5b8cff; --accent2:#a78bfa;
-    --accent3:#34d399; --danger:#f87171; --text:#e8eaf0; --muted:#6b7280; --radius:14px;
-  }
+  :root{--bg:#0d0f14;--surface:#161921;--surface2:#1e2230;--border:#2a2f3e;--accent:#5b8cff;--accent2:#a78bfa;--accent3:#34d399;--danger:#f87171;--text:#e8eaf0;--muted:#6b7280;--radius:14px;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
   body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(91,140,255,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
@@ -28,7 +24,7 @@
   .stat-divider{width:1px;height:16px;background:var(--border);flex-shrink:0;}
   .sync-indicator{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);margin-left:auto;}
   .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);transition:background .3s;flex-shrink:0;}
-  .sync-dot.ok{background:#34d399;} .sync-dot.busy{background:#f59e0b;animation:blink 1s infinite;} .sync-dot.error{background:#f87171;}
+  .sync-dot.ok{background:#34d399;}.sync-dot.busy{background:#f59e0b;animation:blink 1s infinite;}.sync-dot.error{background:#f87171;}
   @media(max-width:600px){.header-bottom{gap:6px;padding-bottom:8px;}.stat-pill{font-size:.68rem;padding:3px 9px;}.stat-divider{display:none;}}
 
   /* MAIN */
@@ -42,7 +38,7 @@
   .task-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;transition:border-color .2s;animation:slideIn .3s ease;}
   @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .task-card:hover{border-color:rgba(91,140,255,.28);}
-  .p-critical{border-left:3px solid #f87171!important;} .p-high{border-left:3px solid #f59e0b!important;} .p-medium{border-left:3px solid #5b8cff!important;} .p-low{border-left:3px solid #34d399!important;}
+  .p-critical{border-left:3px solid #f87171!important;}.p-high{border-left:3px solid #f59e0b!important;}.p-medium{border-left:3px solid #5b8cff!important;}.p-low{border-left:3px solid #34d399!important;}
 
   /* PARENT HEADER */
   .parent-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;user-select:none;}
@@ -75,10 +71,13 @@
   /* ACTIONS */
   .parent-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
   .parent-actions{display:flex;gap:6px;}
-  .btn-icon{width:30px;height:30px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .15s;}
+  .btn-icon{width:30px;height:30px;background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;}
   .btn-icon:hover{background:var(--surface2);color:var(--text);}
   .btn-icon.del:hover{border-color:var(--danger);color:var(--danger);}
   .btn-icon.comment-active{border-color:var(--accent2);color:var(--accent2);background:rgba(167,139,250,.1);}
+
+  /* COMMENT BADGE ON ICON */
+  .comment-badge{position:absolute;top:-6px;right:-6px;background:var(--accent2);color:#fff;border-radius:10px;font-size:.6rem;font-weight:700;font-family:'Syne',sans-serif;min-width:16px;height:16px;padding:0 4px;display:flex;align-items:center;justify-content:center;line-height:1;border:2px solid var(--surface);}
 
   /* SUBTASKS */
   .subtasks-wrap{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;}
@@ -113,19 +112,36 @@
   .btn-add-sub{display:flex;align-items:center;gap:7px;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--muted);padding:9px 14px;font-size:.8rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;width:100%;margin-top:2px;}
   .btn-add-sub:hover{border-color:var(--accent);color:var(--accent);background:rgba(91,140,255,.04);}
 
-  /* ── COMMENTS PANEL ── */
+  /* COMMENT TOGGLE BTN (subtask) */
+  .btn-comment-toggle{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 9px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;position:relative;}
+  .btn-comment-toggle:hover{color:var(--accent2);border-color:var(--accent2);}
+  .btn-comment-toggle.has-comments{color:var(--accent2);border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.07);}
+  .sub-comment-badge{position:absolute;top:-7px;right:-7px;background:var(--accent2);color:#fff;border-radius:10px;font-size:.58rem;font-weight:700;font-family:'Syne',sans-serif;min-width:15px;height:15px;padding:0 3px;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface2);}
+
+  /* COMMENTS PANEL */
   .comments-panel{border-top:1px solid var(--border);background:rgba(30,34,48,.5);overflow:hidden;max-height:0;transition:max-height .35s ease;}
   .sub-comments-panel{border-top:1px solid rgba(255,255,255,.05);background:rgba(13,15,20,.4);overflow:hidden;max-height:0;transition:max-height .35s ease;}
   .comments-inner{padding:16px 20px 20px;}
+  .sub-comments-inner{padding:10px 14px 14px;}
   .comments-title{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
   .comments-title svg{width:14px;height:14px;stroke:var(--accent2);}
   .comments-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
-  .comment-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;animation:slideIn .2s ease;}
-  .comment-item:hover .comment-del{opacity:1;}
+
+  /* COMMENT ITEM */
+  .comment-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;animation:slideIn .2s ease;}
+  .comment-item.editing{border-color:var(--accent2);background:rgba(167,139,250,.05);}
   .comment-body{font-size:.85rem;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;}
-  .comment-date{font-size:.68rem;color:var(--muted);margin-top:6px;}
-  .comment-del{position:absolute;top:8px;right:8px;width:24px;height:24px;background:transparent;border:none;cursor:pointer;color:var(--muted);opacity:0;transition:opacity .15s,color .15s;display:flex;align-items:center;justify-content:center;border-radius:6px;}
-  .comment-del:hover{color:var(--danger);}
+  .comment-edit-area{width:100%;background:var(--bg);border:1px solid var(--accent2);border-radius:6px;padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;resize:none;outline:none;line-height:1.5;min-height:60px;}
+  .comment-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+  .comment-date{font-size:.68rem;color:var(--muted);}
+  .comment-actions{display:flex;gap:6px;align-items:center;}
+  .btn-comment-action{background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:4px;}
+  .btn-comment-action:hover{color:var(--text);border-color:var(--text);}
+  .btn-comment-action.save{color:var(--accent2);border-color:rgba(167,139,250,.3);}
+  .btn-comment-action.save:hover{background:rgba(167,139,250,.1);}
+  .btn-comment-action.del:hover{color:var(--danger);border-color:var(--danger);}
+
+  /* COMMENT INPUT */
   .comment-empty{font-size:.82rem;color:var(--muted);font-style:italic;text-align:center;padding:10px 0;}
   .comment-input-row{display:flex;gap:8px;align-items:flex-end;}
   .comment-textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;resize:none;outline:none;transition:border-color .15s;min-height:60px;max-height:120px;line-height:1.5;}
@@ -134,15 +150,6 @@
   .btn-comment-send{background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:8px;padding:10px 16px;color:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;flex-shrink:0;box-shadow:0 3px 12px rgba(167,139,250,.3);}
   .btn-comment-send:hover{box-shadow:0 5px 18px rgba(167,139,250,.5);}
   .btn-comment-send:disabled{opacity:.4;cursor:not-allowed;}
-
-  /* SUBTASK COMMENTS */
-  .sub-comments-inner{padding:10px 14px 14px;}
-  .sub-comments-inner{padding:10px 14px 14px;}
-
-  /* COMMENT TOGGLE BTN */
-  .btn-comment-toggle{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 9px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
-  .btn-comment-toggle:hover{color:var(--accent2);border-color:var(--accent2);}
-  .btn-comment-toggle.has-comments{color:var(--accent2);border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.07);}
 
   /* LOADING */
   .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;}
@@ -170,8 +177,7 @@
   .date-row{display:flex;gap:12px;}
   .date-row .form-row{width:50%;flex:none;}
   .form-row input[type="date"]{appearance:none;-webkit-appearance:none;cursor:pointer;width:100%;height:42px;min-height:42px;padding:0 13px;line-height:42px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .15s;display:block;box-sizing:border-box;}
-  .form-row input[type="date"]:focus{border-color:var(--accent);}
-  .form-row input:focus,.form-row select:focus{border-color:var(--accent);}
+  .form-row input[type="date"]:focus,.form-row input:focus,.form-row select:focus{border-color:var(--accent);}
   .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;}
   .btn-cancel{background:transparent;border:1px solid var(--border);border-radius:8px;padding:9px 18px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.875rem;cursor:pointer;transition:all .15s;}
   .btn-cancel:hover{color:var(--text);border-color:var(--text);}
@@ -191,7 +197,7 @@
   .fab:hover{box-shadow:0 10px 32px rgba(91,140,255,.6);transform:translateY(-2px) scale(1);}
   @media(max-width:600px){.fab{bottom:20px;right:16px;padding:13px 18px;font-size:.82rem;}}
 
-  ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
   @media(max-width:600px){.parent-header{gap:10px;padding:12px 14px;}.subtasks-wrap{padding:0 10px 12px;}.subtask-row-inner{grid-template-columns:1fr;}.subtask-right{justify-content:flex-end;}.sync-indicator span{display:none;}}
 </style>
 </head>
@@ -232,18 +238,15 @@
   Nueva Tarea
 </button>
 
-<!-- TASK MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-title" id="modalTitle">Nueva Tarea</div>
     <div class="parent-ref" id="parentRef" style="display:none">
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       <span>Proyecto: </span><b id="parentRefName"></b>
     </div>
-    <div class="form-row">
-      <label>Nombre</label>
-      <input type="text" id="fName" placeholder="Ej: Planificación semestre">
-    </div>
+    <div class="form-row"><label>Nombre</label><input type="text" id="fName" placeholder="Ej: Planificación semestre"></div>
     <div class="date-row">
       <div class="form-row"><label>Fecha Inicio</label><input type="date" id="fStart"></div>
       <div class="form-row"><label>Fecha Fin</label><input type="date" id="fEnd"></div>
@@ -273,31 +276,20 @@
 </div>
 
 <script>
-/* ── SUPABASE ── */
 const SUPABASE_URL='https://icrngsqnbzxefclcoyvj.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljcm5nc3FuYnp4ZWZjbGNveXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNjAyNzAsImV4cCI6MjA5NTkzNjI3MH0.Me7SRoFb18bcSlVy5OxrfMyihQDKHSzRwQgMrd0gfP8';
-const {createClient}=supabase;
+const{createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-/* ── CONSTANTS ── */
 const COLORS={'p-critical':'#f87171','p-high':'#f59e0b','p-medium':'#5b8cff','p-low':'#34d399'};
 const PRIORITY={'p-critical':{label:'Crítica',cls:'pb-critical'},'p-high':{label:'Alta',cls:'pb-high'},'p-medium':{label:'Media',cls:'pb-medium'},'p-low':{label:'Baja',cls:'pb-low'}};
 const STATE={'none':{label:'No iniciada',cls:'sp-none',bcls:'psb-none'},'progress':{label:'En progreso',cls:'sp-progress',bcls:'psb-progress'},'done':{label:'Terminada',cls:'sp-done',bcls:'psb-done'}};
 const STATE_ORDER=['none','progress','done'];
 
-/* ── STATE ── */
-let tasks=[];
-let comments={}; // { "tarea_ID": [...], "subtarea_ID": [...] }
-let modalMode='parent';
-let editTarget={};
+let tasks=[], comments={}, modalMode='parent', editTarget={};
 
-/* ── SYNC ── */
-function syncState(status,label){
-  document.getElementById('syncDot').className='sync-dot '+status;
-  document.getElementById('syncLabel').textContent=label;
-}
+function syncState(s,l){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncLabel').textContent=l;}
 
-/* ── LOAD ── */
 async function loadAll(){
   syncState('busy','Cargando...');
   try{
@@ -309,30 +301,39 @@ async function loadAll(){
     if(e3)throw e3;
     tasks=tareas.map(t=>({...t,subs:subtareas.filter(s=>s.tarea_id===t.id)}));
     comments={};
-    (coms||[]).forEach(c=>{
-      const key=c.ref_id;
-      if(!comments[key])comments[key]=[];
-      comments[key].push(c);
-    });
-    render();updateStats();
-    syncState('ok','Sincronizado');
-  }catch(err){
-    syncState('error','Error de conexión');
-    showToast('❌ Error al cargar: '+(err.message||err));
-  }finally{
-    document.getElementById('loadingScreen').style.display='none';
-  }
+    (coms||[]).forEach(c=>{if(!comments[c.ref_id])comments[c.ref_id]=[];comments[c.ref_id].push(c);});
+    render();updateStats();syncState('ok','Sincronizado');
+  }catch(err){syncState('error','Error de conexión');showToast('❌ '+(err.message||err));}
+  finally{document.getElementById('loadingScreen').style.display='none';}
 }
 
-/* ── DERIVE STATE ── */
 function deriveParentState(task){
-  const subs=task.subs||[];
-  if(!subs.length)return'none';
-  const done=subs.filter(s=>s.state==='done').length;
-  const prog=subs.filter(s=>s.state==='progress').length;
-  if(done===subs.length)return'done';
-  if(done>0||prog>0)return'progress';
-  return'none';
+  const s=task.subs||[];if(!s.length)return'none';
+  const done=s.filter(x=>x.state==='done').length,prog=s.filter(x=>x.state==='progress').length;
+  if(done===s.length)return'done';if(done>0||prog>0)return'progress';return'none';
+}
+
+/* ── COMMENT ITEM HTML ── */
+function commentItemHtml(c){
+  return`<div class="comment-item" id="ci-${c.id}">
+    <div class="comment-body" id="cb-${c.id}">${esc(c.body)}</div>
+    <textarea class="comment-edit-area" id="cea-${c.id}" style="display:none">${esc(c.body)}</textarea>
+    <div class="comment-footer">
+      <span class="comment-date">${fmtDateTime(c.created_at)}</span>
+      <div class="comment-actions">
+        <button class="btn-comment-action" id="cedit-${c.id}" onclick="startEditComment('${c.id}',event)">
+          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn-comment-action save" id="csave-${c.id}" style="display:none" onclick="saveEditComment('${c.id}',event)">✓ Guardar</button>
+        <button class="btn-comment-action" id="ccancel-${c.id}" style="display:none" onclick="cancelEditComment('${c.id}',event)">✕ Cancelar</button>
+        <button class="btn-comment-action del" onclick="deleteComment('${c.id}',event)">
+          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>`;
 }
 
 /* ── RENDER ── */
@@ -341,65 +342,46 @@ function render(){
   const open=new Set(JSON.parse(localStorage.getItem('tp_open')||'[]'));
   tasks.forEach(t=>{if(t._collapsed){open.delete(t.id);delete t._collapsed;}});
   const collapsed=id=>!open.has(id);
-
-  if(!tasks.length){
-    container.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><h3>Sin proyectos aún</h3><p>Crea tu primera tarea principal para comenzar.</p></div>`;
-    return;
-  }
+  if(!tasks.length){container.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><h3>Sin proyectos aún</h3><p>Crea tu primera tarea principal para comenzar.</p></div>`;return;}
 
   container.innerHTML=tasks.map((t,ti)=>{
-    const pKey=t.color||'p-medium';
-    const color=COLORS[pKey];
-    const pInfo=PRIORITY[pKey];
-    const pSt=deriveParentState(t);
-    const pSI=STATE[pSt];
-    const subs=t.subs||[];
-    const total=subs.length;
-    const done=subs.filter(s=>s.state==='done').length;
+    const pKey=t.color||'p-medium',color=COLORS[pKey],pInfo=PRIORITY[pKey];
+    const pSt=deriveParentState(t),pSI=STATE[pSt];
+    const subs=t.subs||[],total=subs.length,done=subs.filter(s=>s.state==='done').length;
     const barPct=total?Math.round(done/total*100):0;
-    const tComs=comments[t.id]||[];
-    const tComCount=tComs.length;
+    const tComs=comments[t.id]||[],tCount=tComs.length;
+    const tComHtml=tComs.map(c=>commentItemHtml(c)).join('');
 
     const subsHtml=subs.map((s,si)=>{
-      const sState=s.state||'none';
-      const sSI=STATE[sState];
-      const sKey=s.color||pKey;
-      const sPInfo=PRIORITY[sKey];
+      const sState=s.state||'none',sSI=STATE[sState],sKey=s.color||pKey,sPInfo=PRIORITY[sKey];
       const fd=fmtDate(s.start_date),ed=fmtDate(s.end_date);
-      const sComs=comments[s.id]||[];
-      const sComCount=sComs.length;
-      const sComHtml=sComs.map(c=>`
-        <div class="comment-item">
-          <div class="comment-body">${esc(c.body)}</div>
-          <div class="comment-date">${fmtDateTime(c.created_at)}</div>
-          <button class="comment-del" onclick="deleteComment('${c.id}',event)" title="Eliminar">
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>`).join('');
+      const sComs=comments[s.id]||[],sCount=sComs.length;
+      const sComHtml=sComs.map(c=>commentItemHtml(c)).join('');
       return`<div class="subtask-row">
         <div class="subtask-row-inner">
-        <div class="subtask-left">
-          <div class="subtask-name">${esc(s.name)}</div>
-          <div class="subtask-meta">
-            ${fd||ed?`<span class="date-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${fd||''}${fd&&ed?' → ':''}${ed||''}</span>`:''}
-            <span class="priority-badge ${sPInfo.cls}">${sPInfo.label}</span>
-            <button class="btn-comment-toggle${sComCount>0?' has-comments':''}" onclick="toggleComments('sub-${s.id}',event)">
-              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              ${sComCount>0?sComCount+' comentario'+(sComCount>1?'s':''):'Comentar'}
-            </button>
+          <div class="subtask-left">
+            <div class="subtask-name">${esc(s.name)}</div>
+            <div class="subtask-meta">
+              ${fd||ed?`<span class="date-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${fd||''}${fd&&ed?' → ':''}${ed||''}</span>`:''}
+              <span class="priority-badge ${sPInfo.cls}">${sPInfo.label}</span>
+              <button class="btn-comment-toggle${sCount>0?' has-comments':''}" onclick="toggleComments('sub-${s.id}',event)">
+                <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                ${sCount>0?sCount+' comentario'+(sCount>1?'s':''):'Comentar'}
+                ${sCount>0?`<span class="sub-comment-badge">${sCount}</span>`:''}
+              </button>
+            </div>
+            <span class="state-pill ${sSI.cls}" title="Clic para cambiar estado" onclick="cycleState(${ti},${si},event)">
+              <span class="sp-dot"></span>${sSI.label}
+            </span>
           </div>
-          <span class="state-pill ${sSI.cls}" title="Clic para cambiar estado" onclick="cycleState(${ti},${si},event)">
-            <span class="sp-dot"></span>${sSI.label}
-          </span>
-        </div>
-        <div class="subtask-right">
-          <button class="btn-icon" onclick="openModal('sub',${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="btn-icon del" onclick="deleteSub(${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        </div>
+          <div class="subtask-right">
+            <button class="btn-icon" onclick="openModal('sub',${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="btn-icon del" onclick="deleteSub(${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+          </div>
         </div>
         <div class="sub-comments-panel" id="sub-${s.id}">
           <div class="sub-comments-inner">
-            <div class="comments-list">${sComHtml||`<div class="comment-empty">Sin comentarios aún</div>`}</div>
+            <div class="comments-list" id="cl-sub-${s.id}">${sComHtml||`<div class="comment-empty">Sin comentarios aún</div>`}</div>
             <div class="comment-input-row">
               <textarea class="comment-textarea" id="ctxt-subtarea-${s.id}" placeholder="Escribe un comentario..." rows="2"></textarea>
               <button class="btn-comment-send" onclick="addComment('${s.id}','subtarea',event)">
@@ -411,15 +393,6 @@ function render(){
         </div>
       </div>`;
     }).join('');
-
-    const tComHtml=tComs.map(c=>`
-      <div class="comment-item">
-        <div class="comment-body">${esc(c.body)}</div>
-        <div class="comment-date">${fmtDateTime(c.created_at)}</div>
-        <button class="comment-del" onclick="deleteComment('${c.id}',event)" title="Eliminar">
-          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>`).join('');
 
     return`<div class="task-card ${pKey}${collapsed(t.id)?' collapsed':''}" id="card-${ti}" data-task-id="${t.id}">
       <div class="parent-header" onclick="toggleCollapse(${ti})">
@@ -435,8 +408,9 @@ function render(){
         <div class="parent-right" onclick="event.stopPropagation()">
           <span class="parent-state-badge ${pSI.bcls}"><span class="bk-dot"></span>${pSI.label}</span>
           <div class="parent-actions">
-            <button class="btn-icon${tComCount>0?' comment-active':''}" title="Comentarios (${tComCount})" onclick="toggleComments('tarea-${t.id}',event)">
+            <button class="btn-icon${tCount>0?' comment-active':''}" title="Comentarios" onclick="toggleComments('tarea-${t.id}',event)">
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              ${tCount>0?`<span class="comment-badge">${tCount}</span>`:''}
             </button>
             <button class="btn-icon" onclick="openModal('editParent',${ti})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button class="btn-icon del" onclick="deleteParent(${ti})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
@@ -447,14 +421,10 @@ function render(){
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${barPct}%;background:${color}"></div></div>
         <div class="progress-label" style="color:${color}">${barPct}%</div>
       </div>
-      <!-- COMMENTS PANEL for tarea -->
       <div class="comments-panel" id="tarea-${t.id}">
         <div class="comments-inner">
-          <div class="comments-title">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Comentarios del proyecto${tComCount>0?' ('+tComCount+')':''}
-          </div>
-          <div class="comments-list">${tComHtml||`<div class="comment-empty">Sin comentarios aún</div>`}</div>
+          <div class="comments-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comentarios${tCount>0?' ('+tCount+')':''}</div>
+          <div class="comments-list" id="cl-tarea-${t.id}">${tComHtml||`<div class="comment-empty">Sin comentarios aún</div>`}</div>
           <div class="comment-input-row">
             <textarea class="comment-textarea" id="ctxt-tarea-${t.id}" placeholder="Escribe un comentario sobre este proyecto..." rows="2"></textarea>
             <button class="btn-comment-send" onclick="addComment('${t.id}','tarea',event)">
@@ -484,7 +454,7 @@ function updateStats(){
   document.getElementById('statDone').textContent=done;
 }
 
-/* ── COMMENTS ── */
+/* ── TOGGLE PANEL ── */
 function toggleComments(panelId,e){
   if(e)e.stopPropagation();
   const panel=document.getElementById(panelId);
@@ -499,11 +469,11 @@ function toggleComments(panelId,e){
   }
 }
 
+/* ── ADD COMMENT ── */
 async function addComment(refId,refType,e){
   e.stopPropagation();
-  const txtId=`ctxt-${refType}-${refId}`;
-  const ta=document.getElementById(txtId);
-  const body=ta.value.trim();
+  const ta=document.getElementById(`ctxt-${refType}-${refId}`);
+  const body=(ta?ta.value:'').trim();
   if(!body)return;
   const btn=e.target.closest('button');
   btn.disabled=true;
@@ -513,31 +483,69 @@ async function addComment(refId,refType,e){
   if(!comments[refId])comments[refId]=[];
   comments[refId].push(data);
   ta.value='';
-  // Panel IDs: tareas use "tarea-UUID", subtareas use "sub-UUID"
-  const panelId = refType==='tarea' ? `tarea-${refId}` : `sub-${refId}`;
-  render(); updateStats();
-  syncState('ok','Sincronizado');
-  // Re-open panel after render
-  setTimeout(()=>{
-    const panel=document.getElementById(panelId);
-    if(panel) panel.style.maxHeight='800px';
-  },30);
+  const panelId=refType==='tarea'?`tarea-${refId}`:`sub-${refId}`;
+  render();updateStats();syncState('ok','Sincronizado');
+  setTimeout(()=>{const p=document.getElementById(panelId);if(p)p.style.maxHeight='800px';},30);
   showToast('💬 Comentario agregado');
   btn.disabled=false;
 }
 
+/* ── EDIT COMMENT ── */
+function startEditComment(commentId,e){
+  e.stopPropagation();
+  document.getElementById(`cb-${commentId}`).style.display='none';
+  document.getElementById(`cea-${commentId}`).style.display='block';
+  document.getElementById(`cedit-${commentId}`).style.display='none';
+  document.getElementById(`csave-${commentId}`).style.display='inline-flex';
+  document.getElementById(`ccancel-${commentId}`).style.display='inline-flex';
+  document.getElementById(`ci-${commentId}`).classList.add('editing');
+  const ta=document.getElementById(`cea-${commentId}`);
+  ta.focus();ta.selectionStart=ta.value.length;
+}
+function cancelEditComment(commentId,e){
+  e.stopPropagation();
+  document.getElementById(`cb-${commentId}`).style.display='block';
+  document.getElementById(`cea-${commentId}`).style.display='none';
+  document.getElementById(`cedit-${commentId}`).style.display='inline-flex';
+  document.getElementById(`csave-${commentId}`).style.display='none';
+  document.getElementById(`ccancel-${commentId}`).style.display='none';
+  document.getElementById(`ci-${commentId}`).classList.remove('editing');
+}
+async function saveEditComment(commentId,e){
+  e.stopPropagation();
+  const ta=document.getElementById(`cea-${commentId}`);
+  const body=ta.value.trim();
+  if(!body)return;
+  const btn=e.target.closest('button');
+  btn.disabled=true;btn.textContent='Guardando...';
+  syncState('busy','Guardando...');
+  const{error}=await db.from('comentarios').update({body}).eq('id',commentId);
+  if(error){syncState('error','Error');showToast('❌ '+error.message);btn.disabled=false;btn.textContent='✓ Guardar';return;}
+  // Update local cache
+  for(const key in comments){
+    const c=comments[key].find(x=>x.id===commentId);
+    if(c){c.body=body;break;}
+  }
+  // Keep panel open after re-render
+  const panel=ta.closest('.comments-panel,.sub-comments-panel');
+  const panelId=panel?panel.id:null;
+  render();updateStats();syncState('ok','Sincronizado');
+  if(panelId)setTimeout(()=>{const p=document.getElementById(panelId);if(p)p.style.maxHeight='800px';},30);
+  showToast('✏️ Comentario editado');
+}
+
+/* ── DELETE COMMENT ── */
 async function deleteComment(commentId,e){
   e.stopPropagation();
   if(!confirm('¿Eliminar este comentario?'))return;
+  const panel=e.target.closest('.comments-panel,.sub-comments-panel');
+  const panelId=panel?panel.id:null;
   syncState('busy','Eliminando...');
   const{error}=await db.from('comentarios').delete().eq('id',commentId);
   if(error){syncState('error','Error');showToast('❌ '+error.message);return;}
-  // Remove from local cache
-  for(const key in comments){
-    comments[key]=comments[key].filter(c=>c.id!==commentId);
-  }
-  render();updateStats();
-  syncState('ok','Sincronizado');
+  for(const key in comments){comments[key]=comments[key].filter(c=>c.id!==commentId);}
+  render();updateStats();syncState('ok','Sincronizado');
+  if(panelId)setTimeout(()=>{const p=document.getElementById(panelId);if(p)p.style.maxHeight='800px';},30);
   showToast('🗑 Comentario eliminado');
 }
 
@@ -545,83 +553,51 @@ async function deleteComment(commentId,e){
 async function cycleState(ti,si,e){
   e.stopPropagation();
   const s=tasks[ti].subs[si];
-  const idx=STATE_ORDER.indexOf(s.state||'none');
-  const newState=STATE_ORDER[(idx+1)%STATE_ORDER.length];
+  const newState=STATE_ORDER[(STATE_ORDER.indexOf(s.state||'none')+1)%STATE_ORDER.length];
   syncState('busy','Guardando...');
   const{error}=await db.from('subtareas').update({state:newState}).eq('id',s.id);
   if(error){syncState('error','Error');showToast('❌ '+error.message);return;}
-  s.state=newState;
-  render();updateStats();
-  syncState('ok','Sincronizado');
+  s.state=newState;render();updateStats();syncState('ok','Sincronizado');
   showToast(newState==='done'?'✅ Terminada':newState==='progress'?'🔄 En progreso':'⬜ Reiniciada');
-  if((tasks[ti].subs||[]).every(x=>x.state==='done')&&tasks[ti].subs.length>0)
-    setTimeout(()=>showToast('🎉 ¡Proyecto completado!'),700);
+  if(tasks[ti].subs.every(x=>x.state==='done')&&tasks[ti].subs.length>0)setTimeout(()=>showToast('🎉 ¡Proyecto completado!'),700);
 }
 
 /* ── HELPERS ── */
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function fmtDate(d){
-  if(!d)return'';
-  const[y,m,day]=d.split('-');
-  return`${parseInt(day)} ${'ene feb mar abr may jun jul ago sep oct nov dic'.split(' ')[parseInt(m)-1]} ${y}`;
-}
-function fmtDateTime(iso){
-  if(!iso)return'';
-  const d=new Date(iso);
-  return d.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
-}
+function fmtDate(d){if(!d)return'';const[y,m,day]=d.split('-');return`${parseInt(day)} ${'ene feb mar abr may jun jul ago sep oct nov dic'.split(' ')[parseInt(m)-1]} ${y}`;}
+function fmtDateTime(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});}
 function toggleCollapse(ti){
-  const card=document.getElementById('card-'+ti);
-  card.classList.toggle('collapsed');
+  const card=document.getElementById('card-'+ti);card.classList.toggle('collapsed');
   const id=card.dataset.taskId;
   const open=JSON.parse(localStorage.getItem('tp_open')||'[]');
   if(card.classList.contains('collapsed')){localStorage.setItem('tp_open',JSON.stringify(open.filter(x=>x!==id)));}
   else{if(!open.includes(id))open.push(id);localStorage.setItem('tp_open',JSON.stringify(open));}
 }
 let toastT;
-function showToast(msg){
-  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2600);
-}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2600);}
 
 /* ── MODAL ── */
 function openModal(mode,ti,si){
   modalMode=mode;editTarget={ti,si};
   const title=document.getElementById('modalTitle');
-  const stateRow=document.getElementById('stateRow');
-  const parentRef=document.getElementById('parentRef');
-  const parentRefName=document.getElementById('parentRefName');
-  document.getElementById('fName').value='';
-  document.getElementById('fStart').value='';
-  document.getElementById('fEnd').value='';
-  document.getElementById('fColor').value='p-medium';
-  document.getElementById('fState').value='none';
-  stateRow.style.display='none';
-  parentRef.style.display='none';
-  if(mode==='parent'){
-    title.textContent='✦ Nueva Tarea Principal';
-  }else if(mode==='editParent'){
-    const t=tasks[ti];
-    title.textContent='Editar Tarea Principal';
-    document.getElementById('fName').value=t.name;
-    document.getElementById('fStart').value=t.start_date||'';
-    document.getElementById('fEnd').value=t.end_date||'';
-    document.getElementById('fColor').value=t.color||'p-medium';
+  document.getElementById('fName').value='';document.getElementById('fStart').value='';document.getElementById('fEnd').value='';
+  document.getElementById('fColor').value='p-medium';document.getElementById('fState').value='none';
+  document.getElementById('stateRow').style.display='none';document.getElementById('parentRef').style.display='none';
+  if(mode==='parent'){title.textContent='✦ Nueva Tarea Principal';}
+  else if(mode==='editParent'){
+    const t=tasks[ti];title.textContent='Editar Tarea Principal';
+    document.getElementById('fName').value=t.name;document.getElementById('fStart').value=t.start_date||'';
+    document.getElementById('fEnd').value=t.end_date||'';document.getElementById('fColor').value=t.color||'p-medium';
   }else if(mode==='sub'){
-    stateRow.style.display='block';
-    parentRefName.textContent=tasks[ti].name;
-    parentRef.style.display='flex';
+    document.getElementById('stateRow').style.display='block';
+    document.getElementById('parentRefName').textContent=tasks[ti].name;
+    document.getElementById('parentRef').style.display='flex';
     if(si!==undefined){
-      const s=tasks[ti].subs[si];
-      title.textContent='Editar Subtarea';
-      document.getElementById('fName').value=s.name;
-      document.getElementById('fStart').value=s.start_date||'';
-      document.getElementById('fEnd').value=s.end_date||'';
-      document.getElementById('fColor').value=s.color||'p-medium';
+      const s=tasks[ti].subs[si];title.textContent='Editar Subtarea';
+      document.getElementById('fName').value=s.name;document.getElementById('fStart').value=s.start_date||'';
+      document.getElementById('fEnd').value=s.end_date||'';document.getElementById('fColor').value=s.color||'p-medium';
       document.getElementById('fState').value=s.state||'none';
-    }else{
-      title.textContent='+ Nueva Subtarea';
-    }
+    }else{title.textContent='+ Nueva Subtarea';}
   }
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('fName').focus(),180);
@@ -629,93 +605,69 @@ function openModal(mode,ti,si){
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
 document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-/* ── SAVE ── */
+/* ── SAVE TASK ── */
 async function saveTask(){
   const name=document.getElementById('fName').value.trim();
   if(!name){document.getElementById('fName').focus();return;}
-  const start=document.getElementById('fStart').value||null;
-  const end=document.getElementById('fEnd').value||null;
-  const color=document.getElementById('fColor').value;
-  const state=document.getElementById('fState').value||'none';
-  const btn=document.getElementById('btnSave');
-  btn.disabled=true;btn.textContent='Guardando...';
+  const start=document.getElementById('fStart').value||null,end=document.getElementById('fEnd').value||null;
+  const color=document.getElementById('fColor').value,state=document.getElementById('fState').value||'none';
+  const btn=document.getElementById('btnSave');btn.disabled=true;btn.textContent='Guardando...';
   syncState('busy','Guardando...');
   try{
     if(modalMode==='parent'){
       const{data,error}=await db.from('tareas').insert({name,start_date:start,end_date:end,color}).select().single();
       if(error)throw error;
-      tasks.forEach(t=>t._collapsed=true);
-      localStorage.setItem('tp_open',JSON.stringify([data.id]));
-      tasks.push({...data,subs:[]});
-      showToast('📁 Proyecto creado');
+      tasks.forEach(t=>t._collapsed=true);localStorage.setItem('tp_open',JSON.stringify([data.id]));
+      tasks.push({...data,subs:[]});showToast('📁 Proyecto creado');
       setTimeout(()=>{const card=document.getElementById('card-'+(tasks.length-1));if(card)card.scrollIntoView({behavior:'smooth',block:'center'});},100);
     }else if(modalMode==='editParent'){
       const t=tasks[editTarget.ti];
       const{error}=await db.from('tareas').update({name,start_date:start,end_date:end,color}).eq('id',t.id);
       if(error)throw error;
-      Object.assign(t,{name,start_date:start,end_date:end,color});
-      showToast('✏️ Proyecto actualizado');
+      Object.assign(t,{name,start_date:start,end_date:end,color});showToast('✏️ Proyecto actualizado');
     }else if(modalMode==='sub'){
       const t=tasks[editTarget.ti];
       if(editTarget.si!==undefined){
         const s=t.subs[editTarget.si];
         const{error}=await db.from('subtareas').update({name,start_date:start,end_date:end,color,state}).eq('id',s.id);
         if(error)throw error;
-        Object.assign(s,{name,start_date:start,end_date:end,color,state});
-        showToast('✏️ Subtarea actualizada');
+        Object.assign(s,{name,start_date:start,end_date:end,color,state});showToast('✏️ Subtarea actualizada');
       }else{
-        const pos=t.subs.length;
-        const{data,error}=await db.from('subtareas').insert({tarea_id:t.id,name,start_date:start,end_date:end,color,state,position:pos}).select().single();
+        const{data,error}=await db.from('subtareas').insert({tarea_id:t.id,name,start_date:start,end_date:end,color,state,position:t.subs.length}).select().single();
         if(error)throw error;
-        t.subs.push(data);
-        showToast('➕ Subtarea agregada');
+        t.subs.push(data);showToast('➕ Subtarea agregada');
         if(t.subs.every(s=>s.state==='done')&&t.subs.length>0)setTimeout(()=>showToast('🎉 ¡Proyecto completado!'),700);
       }
     }
-    render();updateStats();
-    syncState('ok','Sincronizado');
-    closeModal();
-  }catch(err){
-    syncState('error','Error');
-    showToast('❌ '+(err.message||'Error desconocido'));
-  }finally{
-    btn.disabled=false;btn.textContent='Guardar';
-  }
+    render();updateStats();syncState('ok','Sincronizado');closeModal();
+  }catch(err){syncState('error','Error');showToast('❌ '+(err.message||'Error desconocido'));}
+  finally{btn.disabled=false;btn.textContent='Guardar';}
 }
 
 /* ── DELETE ── */
 async function deleteParent(ti){
   if(!confirm('¿Eliminar este proyecto y todas sus subtareas?'))return;
-  const t=tasks[ti];
-  syncState('busy','Eliminando...');
+  const t=tasks[ti];syncState('busy','Eliminando...');
   const{error}=await db.from('tareas').delete().eq('id',t.id);
   if(error){syncState('error','Error');showToast('❌ '+error.message);return;}
-  tasks.splice(ti,1);render();updateStats();
-  syncState('ok','Sincronizado');showToast('🗑 Proyecto eliminado');
+  tasks.splice(ti,1);render();updateStats();syncState('ok','Sincronizado');showToast('🗑 Proyecto eliminado');
 }
 async function deleteSub(ti,si){
   if(!confirm('¿Eliminar esta subtarea?'))return;
-  const s=tasks[ti].subs[si];
-  syncState('busy','Eliminando...');
+  const s=tasks[ti].subs[si];syncState('busy','Eliminando...');
   const{error}=await db.from('subtareas').delete().eq('id',s.id);
   if(error){syncState('error','Error');showToast('❌ '+error.message);return;}
-  tasks[ti].subs.splice(si,1);render();updateStats();
-  syncState('ok','Sincronizado');showToast('🗑 Subtarea eliminada');
+  tasks[ti].subs.splice(si,1);render();updateStats();syncState('ok','Sincronizado');showToast('🗑 Subtarea eliminada');
 }
 
-/* ── KEYBOARD ── */
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeModal();
   if(e.key==='Enter'&&document.getElementById('modalOverlay').classList.contains('open'))
     if(document.activeElement.tagName!=='BUTTON'&&document.activeElement.tagName!=='TEXTAREA')saveTask();
 });
 
-/* ── FAB ── */
-const fabEl=document.getElementById('fab');
-const mainBtn=document.querySelector('.btn-add-parent');
-new IntersectionObserver(([entry])=>fabEl.classList.toggle('visible',!entry.isIntersecting),{threshold:0}).observe(mainBtn);
+new IntersectionObserver(([entry])=>document.getElementById('fab').classList.toggle('visible',!entry.isIntersecting),{threshold:0}).observe(document.querySelector('.btn-add-parent'));
 
-/* ── INIT ── */
 loadAll();
 </script>
 </body>
