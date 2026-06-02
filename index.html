@@ -136,14 +136,27 @@
   /* MODAL */
   .modal-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
   .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; width:100%; max-width:500px; padding:28px; transform:scale(.96); transition:transform .2s; box-shadow:0 24px 80px rgba(0,0,0,.5); }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:18px; width:100%; max-width:480px; padding:28px; transform:scale(.96); transition:transform .2s; box-shadow:0 24px 80px rgba(0,0,0,.5); }
   .modal-overlay.open .modal { transform:scale(1); }
+  @media (max-width:540px) { .modal { padding:20px 16px; border-radius:14px; } }
   .modal-title { font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:22px; }
-  .form-row { margin-bottom:16px; }
-  .form-row label { display:block; font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px; font-weight:500; }
-  .form-row input, .form-row select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.875rem; outline:none; transition:border-color .15s; }
+  .form-row { margin-bottom:20px; }
+  .form-row label { display:block; font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; font-weight:500; }
+  .form-row input, .form-row select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.875rem; outline:none; transition:border-color .15s; display:block; }
+  .date-row { display:flex; gap:12px; }
+  .date-row .form-row { width:50%; flex:none; }
+  .form-row input[type="date"] {
+    appearance:none; -webkit-appearance:none; cursor:pointer;
+    width:100%; height:42px; min-height:42px;
+    padding:0 13px; line-height:42px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; color:var(--text);
+    font-family:'DM Sans',sans-serif; font-size:.875rem;
+    outline:none; transition:border-color .15s; display:block;
+    box-sizing:border-box;
+  }
+  .form-row input[type="date"]:focus { border-color:var(--accent); }
   .form-row input:focus, .form-row select:focus { border-color:var(--accent); }
-  .form-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
   .btn-cancel { background:transparent; border:1px solid var(--border); border-radius:8px; padding:9px 18px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:.875rem; cursor:pointer; transition:all .15s; }
   .btn-cancel:hover { color:var(--text); border-color:var(--text); }
@@ -231,7 +244,7 @@
       <label>Nombre</label>
       <input type="text" id="fName" placeholder="Ej: Planificación semestre">
     </div>
-    <div class="form-grid2">
+    <div class="date-row">
       <div class="form-row">
         <label>Fecha Inicio</label>
         <input type="date" id="fStart">
