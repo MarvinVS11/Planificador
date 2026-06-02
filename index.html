@@ -513,14 +513,14 @@ async function addComment(refId,refType,e){
   if(!comments[refId])comments[refId]=[];
   comments[refId].push(data);
   ta.value='';
-  // Keep panel open after re-render
-  const panelId=`${refType}-${refId}`;
-  render();updateStats();
+  // Panel IDs: tareas use "tarea-UUID", subtareas use "sub-UUID"
+  const panelId = refType==='tarea' ? `tarea-${refId}` : `sub-${refId}`;
+  render(); updateStats();
   syncState('ok','Sincronizado');
   // Re-open panel after render
   setTimeout(()=>{
     const panel=document.getElementById(panelId);
-    if(panel)panel.style.maxHeight='800px';
+    if(panel) panel.style.maxHeight='800px';
   },30);
   showToast('💬 Comentario agregado');
   btn.disabled=false;
