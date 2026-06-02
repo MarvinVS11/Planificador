@@ -320,6 +320,15 @@ function deriveParentState(task) {
 /* ── RENDER ── */
 function render() {
   const container = document.getElementById('tasksContainer');
+
+  // Preserve which cards are currently collapsed before wiping DOM
+  const collapsed = new Set();
+  document.querySelectorAll('.task-card.collapsed').forEach(el => {
+    collapsed.add(el.dataset.taskId);
+  });
+  // Also respect _collapsed flag set programmatically
+  tasks.forEach(t => { if (t._collapsed) { collapsed.add(t.id); delete t._collapsed; } });
+
   if (!tasks.length) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>Sin proyectos aún</h3><p>Crea tu primera tarea principal para comenzar.</p></div>`;
     return;
@@ -359,7 +368,7 @@ function render() {
       </div>`;
     }).join('');
 
-    return `<div class="task-card ${pKey}" id="card-${ti}">
+    return `<div class="task-card ${pKey}${collapsed.has(t.id)?' collapsed':''}" id="card-${ti}" data-task-id="${t.id}">
       <div class="parent-header" onclick="toggleCollapse(${ti})">
         <div class="collapse-btn"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
         <div class="parent-info">
@@ -497,6 +506,8 @@ async function saveTask() {
     if (modalMode==='parent') {
       const { data, error } = await db.from('tareas').insert({ name, start_date:start, end_date:end, color }).select().single();
       if (error) throw error;
+      // Mark all existing tasks to be collapsed, new one stays expanded
+      tasks.forEach(t => t._collapsed = true);
       tasks.push({...data, subs:[]});
       showToast('📁 Proyecto creado');
 
