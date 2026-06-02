@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planificador de Tareas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161921;
+    --surface2: #1e2230;
+    --border: #2a2f3e;
+    --accent: #5b8cff;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --danger: #f87171;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(91,140,255,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; bottom: -100px; right: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,15,20,0.88); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 0 24px;
+  }
+  .header-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; height: 64px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-stats { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .stat-pill {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 13px;
+    font-size: 0.73rem; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .stat-pill b { color: var(--text); font-weight: 600; }
+  .stat-pill .sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── MAIN ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; position: relative; z-index: 1; }
+  .page-title {
+    font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,4vw,2.6rem);
+    font-weight: 800; letter-spacing: -1px; margin-bottom: 6px;
+  }
+  .page-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+
+  .btn-add-parent {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; border-radius: 10px;
+    padding: 11px 22px; font-size: 0.875rem; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .2s;
+    margin-bottom: 28px; box-shadow: 0 4px 20px rgba(91,140,255,0.25);
+  }
+  .btn-add-parent:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(91,140,255,0.35); }
+
+  /* ── TASK CARD ── */
+  .task-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
+    animation: slideIn .3s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .task-card:hover { border-color: rgba(91,140,255,0.28); }
+
+  /* priority left border */
+  .p-critical { border-left: 3px solid #f87171 !important; }
+  .p-high     { border-left: 3px solid #f59e0b !important; }
+  .p-medium   { border-left: 3px solid #5b8cff !important; }
+  .p-low      { border-left: 3px solid #34d399 !important; }
+
+  /* ── PARENT HEADER ── */
+  .parent-header {
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 14px; padding: 16px 20px;
+    cursor: pointer; user-select: none;
+  }
+  .collapse-btn {
+    width: 28px; height: 28px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); transition: all .2s; flex-shrink: 0;
+  }
+  .collapse-btn svg { transition: transform .25s; }
+  .collapsed .collapse-btn svg { transform: rotate(-90deg); }
+
+  .parent-info { min-width: 0; }
+  .parent-name {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;
+  }
+  .parent-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  .date-tag { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); }
+  .date-tag svg { width: 12px; height: 12px; }
+
+  /* ── PARENT STATE BADGE (large, always visible) ── */
+  .parent-state-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 8px; padding: 5px 13px;
+    font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
+    letter-spacing: .3px; flex-shrink: 0;
+  }
+  .parent-state-badge .bk-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .psb-none     { background: rgba(107,114,128,0.13); color: var(--muted);  border: 1px solid rgba(107,114,128,0.22); }
+  .psb-none .bk-dot  { background: var(--muted); }
+  .psb-progress { background: rgba(91,140,255,0.13); color: #5b8cff;        border: 1px solid rgba(91,140,255,0.28); }
+  .psb-progress .bk-dot { background: #5b8cff; box-shadow: 0 0 6px #5b8cff; animation: blink 1.6s infinite; }
+  .psb-done     { background: rgba(52,211,153,0.13); color: #34d399;        border: 1px solid rgba(52,211,153,0.28); }
+  .psb-done .bk-dot  { background: #34d399; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+  /* ── PROGRESS SECTION ── */
+  .parent-progress-section {
+    padding: 0 20px 14px; display: flex; align-items: center; gap: 12px;
+  }
+  .progress-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+  .progress-label {
+    font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700;
+    min-width: 28px; text-align: right; flex-shrink: 0;
+  }
+
+  /* ── PARENT ACTIONS ── */
+  .parent-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .parent-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    width: 30px; height: 30px; background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; color: var(--muted);
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+  }
+  .btn-icon:hover { background: var(--surface2); color: var(--text); }
+  .btn-icon.del:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* ── SUBTASKS ── */
+  .subtasks-wrap { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .collapsed .subtasks-wrap { display: none; }
+
+  .subtask-row {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+    animation: slideIn .22s ease; transition: border-color .15s;
+  }
+  .subtask-row:hover { border-color: rgba(91,140,255,0.22); }
+
+  .subtask-left { min-width: 0; }
+  .subtask-name {
+    font-size: 0.875rem; font-weight: 500; margin-bottom: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .subtask-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 9px; }
+
+  /* ── STATE PILL (subtasks) ── */
+  .state-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 7px; padding: 4px 11px;
+    font-size: 0.74rem; font-weight: 700;
+    font-family: 'Syne', sans-serif; letter-spacing: .2px;
+    cursor: pointer; transition: opacity .15s; user-select: none;
+  }
+  .state-pill:hover { opacity: .8; }
+  .state-pill .sp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .sp-none     { background: rgba(107,114,128,0.12); color: var(--muted);  border: 1px solid rgba(107,114,128,0.2); }
+  .sp-none .sp-dot  { background: var(--muted); }
+  .sp-progress { background: rgba(91,140,255,0.12); color: #5b8cff;        border: 1px solid rgba(91,140,255,0.25); }
+  .sp-progress .sp-dot { background: #5b8cff; box-shadow: 0 0 5px #5b8cff; animation: blink 1.6s infinite; }
+  .sp-done     { background: rgba(52,211,153,0.12); color: #34d399;        border: 1px solid rgba(52,211,153,0.25); }
+  .sp-done .sp-dot  { background: #34d399; }
+
+  .subtask-right { display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── PRIORITY BADGE ── */
+  .priority-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 6px; padding: 3px 9px;
+    font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+  .pb-critical { background: rgba(248,113,113,0.13); color: #f87171; border: 1px solid rgba(248,113,113,0.22); }
+  .pb-high     { background: rgba(245,158,11,0.13);  color: #f59e0b; border: 1px solid rgba(245,158,11,0.22); }
+  .pb-medium   { background: rgba(91,140,255,0.13);  color: #5b8cff; border: 1px solid rgba(91,140,255,0.22); }
+  .pb-low      { background: rgba(52,211,153,0.13);  color: #34d399; border: 1px solid rgba(52,211,153,0.22); }
+
+  /* ── ADD SUBTASK ── */
+  .btn-add-sub {
+    display: flex; align-items: center; gap: 7px;
+    background: transparent; border: 1px dashed var(--border);
+    border-radius: 8px; color: var(--muted);
+    padding: 9px 14px; font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all .2s; width: 100%; margin-top: 2px;
+  }
+  .btn-add-sub:hover { border-color: var(--accent); color: var(--accent); background: rgba(91,140,255,0.04); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 11px 20px;
+    font-size: 0.82rem; font-weight: 500; color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    transition: transform .3s ease; z-index: 500; white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; width: 100%; max-width: 500px; padding: 28px;
+    transform: scale(0.96); transition: transform .2s;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 22px; }
+
+  .form-row { margin-bottom: 16px; }
+  .form-row label {
+    display: block; font-size: 0.75rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; font-weight: 500;
+  }
+  .form-row input, .form-row select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 13px;
+    color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem; outline: none; transition: border-color .15s;
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+  .form-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .btn-cancel {
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 18px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem; cursor: pointer; transition: all .15s;
+  }
+  .btn-cancel:hover { color: var(--text); border-color: var(--text); }
+  .btn-save {
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none;
+    border-radius: 8px; padding: 9px 22px; color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: all .15s; box-shadow: 0 4px 14px rgba(91,140,255,0.25);
+  }
+  .btn-save:hover { box-shadow: 0 6px 20px rgba(91,140,255,0.4); }
+
+  /* ── EMPTY ── */
+  .empty-state { text-align: center; padding: 70px 20px; }
+  .empty-icon  { font-size: 3rem; margin-bottom: 14px; opacity: .5; }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .empty-state p { color: var(--muted); font-size: 0.875rem; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .header-stats { gap: 6px; }
+    .stat-pill { padding: 4px 9px; font-size: 0.68rem; }
+    .parent-header { gap: 10px; padding: 12px 14px; }
+    .subtasks-wrap { padding: 0 10px 12px; }
+    .subtask-row { grid-template-columns: 1fr; }
+    .subtask-right { justify-content: flex-end; }
+    .form-grid2 { grid-template-columns: 1fr; }
+    .parent-state-badge { font-size: 0.7rem; padding: 4px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">⬡ TaskPlanner</div>
+    <div class="header-stats">
+      <div class="stat-pill">Proyectos <b id="statParents">0</b></div>
+      <div class="stat-pill">Subtareas <b id="statTasks">0</b></div>
+      <div class="stat-pill"><span class="sdot" style="background:var(--muted)"></span>No iniciadas <b id="statNone">0</b></div>
+      <div class="stat-pill"><span class="sdot" style="background:#5b8cff;box-shadow:0 0 5px #5b8cff"></span>En progreso <b id="statProg">0</b></div>
+      <div class="stat-pill"><span class="sdot" style="background:#34d399"></span>Terminadas <b id="statDone">0</b></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Planificador</div>
+  <p class="page-sub">El estado de cada proyecto se actualiza automáticamente según sus subtareas.</p>
+
+  <button class="btn-add-parent" onclick="openModal('parent')">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nueva Tarea Principal
+  </button>
+
+  <div id="tasksContainer"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Nueva Tarea</div>
+    <div class="form-row">
+      <label>Nombre</label>
+      <input type="text" id="fName" placeholder="Ej. Diseño de interfaz...">
+    </div>
+    <div class="form-grid2">
+      <div class="form-row">
+        <label>Fecha Inicio</label>
+        <input type="date" id="fStart">
+      </div>
+      <div class="form-row">
+        <label>Fecha Fin</label>
+        <input type="date" id="fEnd">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Prioridad</label>
+      <select id="fColor">
+        <option value="p-critical">🔴 Crítica</option>
+        <option value="p-high">🟠 Alta</option>
+        <option value="p-medium" selected>🔵 Media</option>
+        <option value="p-low">🟢 Baja</option>
+      </select>
+    </div>
+    <div class="form-row" id="stateRow" style="display:none">
+      <label>Estado inicial</label>
+      <select id="fState">
+        <option value="none">⬜ No iniciada</option>
+        <option value="progress">🔄 En progreso</option>
+        <option value="done">✅ Terminada</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── DATA ─── */
+let tasks = [];
+try { tasks = JSON.parse(localStorage.getItem('tp_tasks') || '[]'); } catch(e) { tasks = []; }
+let modalMode = 'parent';
+let editTarget = {};
+
+/* ─── CONSTANTS ─── */
+const COLORS = { 'p-critical':'#f87171', 'p-high':'#f59e0b', 'p-medium':'#5b8cff', 'p-low':'#34d399' };
+const PRIORITY = {
+  'p-critical': { label:'Crítica', cls:'pb-critical' },
+  'p-high':     { label:'Alta',    cls:'pb-high' },
+  'p-medium':   { label:'Media',   cls:'pb-medium' },
+  'p-low':      { label:'Baja',    cls:'pb-low' },
+};
+const STATE = {
+  'none':     { label:'No iniciada', cls:'sp-none',     bcls:'psb-none',     pct:0   },
+  'progress': { label:'En progreso', cls:'sp-progress', bcls:'psb-progress', pct:50  },
+  'done':     { label:'Terminada',   cls:'sp-done',     bcls:'psb-done',     pct:100 },
+};
+const STATE_ORDER = ['none', 'progress', 'done'];
+
+/* ─── AUTO STATE LOGIC ─── */
+// Derives parent state purely from subtasks.
+// If no subtasks → use manually stored state (or 'none').
+function deriveParentState(task) {
+  const subs = task.subs || [];
+  if (!subs.length) return task.manualState || 'none';
+  const total = subs.length;
+  const done  = subs.filter(s => s.state === 'done').length;
+  const inProg = subs.filter(s => s.state === 'progress').length;
+  if (done === total)              return 'done';     // todas terminadas → cerrada
+  if (done > 0 || inProg > 0)     return 'progress'; // al menos 1 iniciada → en progreso
+  return 'none';                                       // ninguna iniciada → no iniciada
+}
+
+// When a new sub is added, auto-move parent to progress if it was 'none'
+function autoAdvanceParentOnAdd(ti) {
+  const t = tasks[ti];
+  const current = deriveParentState(t);
+  // state derives from subs automatically; nothing extra needed
+  // but we want to persist manualState = 'progress' when there are no subs yet
+  if (!t.subs.length) t.manualState = 'progress';
+}
+
+/* ─── CYCLE STATE (click pill) ─── */
+function cycleSubState(ti, si, e) {
+  e.stopPropagation();
+  const s = tasks[ti].subs[si];
+  const idx = STATE_ORDER.indexOf(s.state || 'none');
+  s.state = STATE_ORDER[(idx + 1) % STATE_ORDER.length];
+  save();
+  showToast(s.state === 'done' ? '✅ Subtarea terminada' : s.state === 'progress' ? '🔄 Subtarea en progreso' : '⬜ Subtarea reiniciada');
+}
+
+/* ─── PERSIST & RENDER ─── */
+function save() {
+  localStorage.setItem('tp_tasks', JSON.stringify(tasks));
+  render();
+  updateStats();
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const mo = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(day)} ${mo[parseInt(m)-1]} ${y}`;
+}
+
+function updateStats() {
+  let allSubs = [], parentDone = 0, parentProg = 0, parentNone = 0;
+  tasks.forEach(t => {
+    allSubs = allSubs.concat(t.subs||[]);
+    const ps = deriveParentState(t);
+    if (ps === 'done') parentDone++;
+    else if (ps === 'progress') parentProg++;
+    else parentNone++;
+  });
+  const none = allSubs.filter(s=>s.state==='none'||!s.state).length;
+  const prog = allSubs.filter(s=>s.state==='progress').length;
+  const done = allSubs.filter(s=>s.state==='done').length;
+  document.getElementById('statParents').textContent = tasks.length;
+  document.getElementById('statTasks').textContent   = allSubs.length;
+  document.getElementById('statNone').textContent    = none;
+  document.getElementById('statProg').textContent    = prog;
+  document.getElementById('statDone').textContent    = done;
+}
+
+function render() {
+  const container = document.getElementById('tasksContainer');
+  if (!tasks.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>Sin proyectos aún</h3>
+      <p>Crea tu primera tarea principal para comenzar a planificar.</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = tasks.map((t, ti) => {
+    const pKey   = t.color || 'p-medium';
+    const color  = COLORS[pKey];
+    const pInfo  = PRIORITY[pKey];
+    const pState = deriveParentState(t);
+    const pSI    = STATE[pState];
+    const subs   = t.subs || [];
+    const total  = subs.length;
+    const done   = subs.filter(s => s.state === 'done').length;
+    const barPct = total ? Math.round(done / total * 100) : 0;
+
+    const subsHtml = subs.map((s, si) => {
+      const sState = s.state || 'none';
+      const sSI    = STATE[sState];
+      const sKey   = s.color || pKey;
+      const sPInfo = PRIORITY[sKey];
+      const fd     = formatDate(s.start);
+      const ed     = formatDate(s.end);
+      return `<div class="subtask-row">
+        <div class="subtask-left">
+          <div class="subtask-name">${escHtml(s.name)}</div>
+          <div class="subtask-meta">
+            ${fd ? `<span class="date-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${fd}${ed?' → '+ed:''}</span>` : (ed?`<span class="date-tag">→ ${ed}</span>`:'')}
+            <span class="priority-badge ${sPInfo.cls}">${sPInfo.label}</span>
+          </div>
+          <span class="state-pill ${sSI.cls}" title="Clic para cambiar estado" onclick="cycleSubState(${ti},${si},event)">
+            <span class="sp-dot"></span>${sSI.label}
+          </span>
+        </div>
+        <div class="subtask-right">
+          <button class="btn-icon" title="Editar" onclick="openModal('sub',${ti},${si})">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon del" title="Eliminar" onclick="deleteSub(${ti},${si})">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="task-card ${pKey}" id="card-${ti}">
+      <div class="parent-header" onclick="toggleCollapse(${ti})">
+        <div class="collapse-btn">
+          <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="parent-info">
+          <div class="parent-name">${escHtml(t.name)}</div>
+          <div class="parent-meta">
+            ${t.start||t.end ? `<span class="date-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${formatDate(t.start)||'—'}${t.end?' → '+formatDate(t.end):''}</span>` : ''}
+            <span class="priority-badge ${pInfo.cls}">${pInfo.label}</span>
+            <span class="date-tag">${total} subtarea${total!==1?'s':''} · ${done} terminada${done!==1?'s':''}</span>
+          </div>
+        </div>
+        <div class="parent-right" onclick="event.stopPropagation()">
+          <span class="parent-state-badge ${pSI.bcls}">
+            <span class="bk-dot"></span>${pSI.label}
+          </span>
+          <div class="parent-actions">
+            <button class="btn-icon" title="Editar" onclick="openModal('editParent',${ti})">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon del" title="Eliminar" onclick="deleteParent(${ti})">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="parent-progress-section">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:${barPct}%;background:${color}"></div>
+        </div>
+        <div class="progress-label" style="color:${color}">${barPct}%</div>
+      </div>
+      <div class="subtasks-wrap">
+        ${subsHtml}
+        <button class="btn-add-sub" onclick="openModal('sub',${ti})">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar subtarea
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCollapse(ti) {
+  document.getElementById('card-'+ti).classList.toggle('collapsed');
+}
+
+/* ─── TOAST ─── */
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ─── MODAL ─── */
+function openModal(mode, taskIdx, subIdx) {
+  modalMode = mode; editTarget = { taskIdx, subIdx };
+  const title = document.getElementById('modalTitle');
+  const stateRow = document.getElementById('stateRow');
+
+  document.getElementById('fName').value  = '';
+  document.getElementById('fStart').value = '';
+  document.getElementById('fEnd').value   = '';
+  document.getElementById('fColor').value = 'p-medium';
+  document.getElementById('fState').value = 'none';
+  stateRow.style.display = 'none';
+
+  if (mode === 'parent') {
+    title.textContent = '✦ Nueva Tarea Principal';
+  } else if (mode === 'editParent') {
+    const t = tasks[taskIdx];
+    title.textContent = 'Editar Tarea Principal';
+    document.getElementById('fName').value  = t.name;
+    document.getElementById('fStart').value = t.start || '';
+    document.getElementById('fEnd').value   = t.end   || '';
+    document.getElementById('fColor').value = t.color || 'p-medium';
+  } else if (mode === 'sub') {
+    stateRow.style.display = 'block';
+    if (subIdx !== undefined) {
+      const s = tasks[taskIdx].subs[subIdx];
+      title.textContent = 'Editar Subtarea';
+      document.getElementById('fName').value  = s.name;
+      document.getElementById('fStart').value = s.start || '';
+      document.getElementById('fEnd').value   = s.end   || '';
+      document.getElementById('fColor').value = s.color || 'p-medium';
+      document.getElementById('fState').value = s.state || 'none';
+    } else {
+      title.textContent = '+ Nueva Subtarea';
+      // default state for new subtask = 'none' (user can override)
+      document.getElementById('fState').value = 'none';
+    }
+  }
+
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('fName').focus(), 180);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function saveTask() {
+  const name  = document.getElementById('fName').value.trim();
+  if (!name) { document.getElementById('fName').focus(); return; }
+  const start = document.getElementById('fStart').value;
+  const end   = document.getElementById('fEnd').value;
+  const color = document.getElementById('fColor').value;
+  const state = document.getElementById('fState').value || 'none';
+  const { taskIdx, subIdx } = editTarget;
+
+  if (modalMode === 'parent') {
+    tasks.push({ name, start, end, color, manualState: 'none', subs: [] });
+    showToast('📁 Tarea principal creada');
+
+  } else if (modalMode === 'editParent') {
+    Object.assign(tasks[taskIdx], { name, start, end, color });
+    showToast('✏️ Tarea principal actualizada');
+
+  } else if (modalMode === 'sub') {
+    if (!tasks[taskIdx].subs) tasks[taskIdx].subs = [];
+    if (subIdx !== undefined) {
+      Object.assign(tasks[taskIdx].subs[subIdx], { name, start, end, color, state });
+      showToast('✏️ Subtarea actualizada');
+    } else {
+      // NEW subtask — always starts as 'none' unless user set it
+      tasks[taskIdx].subs.push({ name, start, end, color, state });
+      // Auto-advance parent to 'progress' if it was virgin (no subs before)
+      // deriveParentState() will handle this automatically since subs.length > 0 now
+      showToast('➕ Subtarea agregada');
+    }
+    // check if all done → toast
+    const t = tasks[taskIdx];
+    if (t.subs.length > 0 && t.subs.every(s => s.state === 'done')) {
+      setTimeout(() => showToast('🎉 ¡Todas las subtareas terminadas! Proyecto cerrado.'), 600);
+    }
+  }
+  closeModal();
+  save();
+}
+
+function deleteParent(ti) {
+  if (!confirm('¿Eliminar esta tarea y todas sus subtareas?')) return;
+  tasks.splice(ti, 1);
+  save();
+  showToast('🗑 Tarea eliminada');
+}
+function deleteSub(ti, si) {
+  if (!confirm('¿Eliminar esta subtarea?')) return;
+  tasks[ti].subs.splice(si, 1);
+  save();
+  showToast('🗑 Subtarea eliminada');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('modalOverlay').classList.contains('open')) {
+    if (document.activeElement.tagName !== 'BUTTON') saveTask();
+  }
+});
+
+render();
+updateStats();
+</script>
+</body>
+</html>
