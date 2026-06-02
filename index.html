@@ -328,13 +328,11 @@ function deriveParentState(task) {
 function render() {
   const container = document.getElementById('tasksContainer');
 
-  // Preserve which cards are currently collapsed before wiping DOM
-  const collapsed = new Set();
-  document.querySelectorAll('.task-card.collapsed').forEach(el => {
-    collapsed.add(el.dataset.taskId);
-  });
-  // Also respect _collapsed flag set programmatically
-  tasks.forEach(t => { if (t._collapsed) { collapsed.add(t.id); delete t._collapsed; } });
+  // Only cards explicitly opened by the user are expanded; all others collapsed
+  const open = new Set(JSON.parse(localStorage.getItem('tp_open') || '[]'));
+  // _collapsed flag: force-collapse existing tasks when new parent added
+  tasks.forEach(t => { if (t._collapsed) { open.delete(t.id); delete t._collapsed; } });
+  const collapsed = id => !open.has(id);
 
   if (!tasks.length) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>Sin proyectos aún</h3><p>Crea tu primera tarea principal para comenzar.</p></div>`;
@@ -375,7 +373,7 @@ function render() {
       </div>`;
     }).join('');
 
-    return `<div class="task-card ${pKey}${collapsed.has(t.id)?' collapsed':''}" id="card-${ti}" data-task-id="${t.id}">
+    return `<div class="task-card ${pKey}${collapsed(t.id)?' collapsed':''}" id="card-${ti}" data-task-id="${t.id}">
       <div class="parent-header" onclick="toggleCollapse(${ti})">
         <div class="collapse-btn"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
         <div class="parent-info">
@@ -449,7 +447,20 @@ function fmtDate(d) {
   const [y,m,day] = d.split('-');
   return `${parseInt(day)} ${'ene feb mar abr may jun jul ago sep oct nov dic'.split(' ')[parseInt(m)-1]} ${y}`;
 }
-function toggleCollapse(ti) { document.getElementById('card-'+ti).classList.toggle('collapsed'); }
+function toggleCollapse(ti) {
+  const card = document.getElementById('card-'+ti);
+  card.classList.toggle('collapsed');
+  // Persist collapsed state by task id
+  const id = card.dataset.taskId;
+  const open = JSON.parse(localStorage.getItem('tp_open') || '[]');
+  if (card.classList.contains('collapsed')) {
+    const filtered = open.filter(x => x !== id);
+    localStorage.setItem('tp_open', JSON.stringify(filtered));
+  } else {
+    if (!open.includes(id)) open.push(id);
+    localStorage.setItem('tp_open', JSON.stringify(open));
+  }
+}
 let toastT;
 function showToast(msg) {
   const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
@@ -513,8 +524,10 @@ async function saveTask() {
     if (modalMode==='parent') {
       const { data, error } = await db.from('tareas').insert({ name, start_date:start, end_date:end, color }).select().single();
       if (error) throw error;
-      // Mark all existing tasks to be collapsed, new one stays expanded
+      // Collapse all existing tasks, open only the new one
       tasks.forEach(t => t._collapsed = true);
+      const open = [data.id];
+      localStorage.setItem('tp_open', JSON.stringify(open));
       tasks.push({...data, subs:[]});
       showToast('📁 Proyecto creado');
 
