@@ -530,6 +530,12 @@ async function saveTask() {
       localStorage.setItem('tp_open', JSON.stringify(open));
       tasks.push({...data, subs:[]});
       showToast('📁 Proyecto creado');
+      // After render, scroll the new card into view
+      setTimeout(() => {
+        const newIdx = tasks.length - 1;
+        const card = document.getElementById('card-' + newIdx);
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
 
     } else if (modalMode==='editParent') {
       const t=tasks[editTarget.ti];
