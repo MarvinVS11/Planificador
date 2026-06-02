@@ -590,7 +590,7 @@ function showToast(msg){const el=document.getElementById('toast');el.textContent
 function openModal(mode,ti,si){
   modalMode=mode;editTarget={ti,si};
   const title=document.getElementById('modalTitle');
-  document.getElementById('fName').value='';document.getElementById('fStart').value='';document.getElementById('fEnd').value='';
+  document.getElementById('fName').value='';document.getElementById('fName').placeholder='Ej: Planificación semestre';document.getElementById('fStart').value='';document.getElementById('fEnd').value='';
   document.getElementById('fColor').value='p-medium';document.getElementById('fState').value='none';
   document.getElementById('stateRow').style.display='none';document.getElementById('parentRef').style.display='none';
   if(mode==='parent'){title.textContent='✦ Nueva Tarea Principal';}
@@ -602,6 +602,8 @@ function openModal(mode,ti,si){
     document.getElementById('stateRow').style.display='block';
     document.getElementById('parentRefName').textContent=tasks[ti].name;
     document.getElementById('parentRef').style.display='flex';
+    const parentName=tasks[ti].name;
+    document.getElementById('fName').placeholder=`Ej: Tarea de ${parentName}`;
     if(si!==undefined){
       const s=tasks[ti].subs[si];title.textContent='Editar Subtarea';
       document.getElementById('fName').value=s.name;document.getElementById('fStart').value=s.start_date||'';
