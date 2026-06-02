@@ -83,8 +83,9 @@
   /* SUBTASKS */
   .subtasks-wrap{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;}
   .collapsed .subtasks-wrap{display:none;}
-  .subtask-row{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;animation:slideIn .22s ease;transition:border-color .15s;}
+  .subtask-row{background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;animation:slideIn .22s ease;transition:border-color .15s;}
   .subtask-row:hover{border-color:rgba(91,140,255,.22);}
+  .subtask-row-inner{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;padding:12px 14px;}
   .subtask-left{min-width:0;}
   .subtask-name{font-size:.875rem;font-weight:500;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .subtask-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:9px;}
@@ -192,7 +193,7 @@
   @media(max-width:600px){.fab{bottom:20px;right:16px;padding:13px 18px;font-size:.82rem;}}
 
   ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-  @media(max-width:600px){.parent-header{gap:10px;padding:12px 14px;}.subtasks-wrap{padding:0 10px 12px;}.subtask-row{grid-template-columns:1fr;}.subtask-right{justify-content:flex-end;}.sync-indicator span{display:none;}}
+  @media(max-width:600px){.parent-header{gap:10px;padding:12px 14px;}.subtasks-wrap{padding:0 10px 12px;}.subtask-row-inner{grid-template-columns:1fr;}.subtask-right{justify-content:flex-end;}.sync-indicator span{display:none;}}
 </style>
 </head>
 <body>
@@ -377,6 +378,7 @@ function render(){
           </button>
         </div>`).join('');
       return`<div class="subtask-row">
+        <div class="subtask-row-inner">
         <div class="subtask-left">
           <div class="subtask-name">${esc(s.name)}</div>
           <div class="subtask-meta">
@@ -394,6 +396,7 @@ function render(){
         <div class="subtask-right">
           <button class="btn-icon" onclick="openModal('sub',${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           <button class="btn-icon del" onclick="deleteSub(${ti},${si})"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+        </div>
         </div>
         <div class="sub-comments-panel" id="sub-${s.id}">
           <div class="sub-comments-inner">
