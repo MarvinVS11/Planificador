@@ -361,7 +361,8 @@ function render(){
     const pKey=t.color||'p-medium',color=COLORS[pKey],pInfo=PRIORITY[pKey];
     const pSt=deriveParentState(t),pSI=STATE[pSt];
     const subs=t.subs||[],total=subs.length,done=subs.filter(s=>s.state==='done').length;
-    const barPct=total?Math.round(done/total*100):0;
+    const inProg=subs.filter(s=>s.state==='progress').length;
+    const barPct=total?Math.round((done + inProg*0.5)/total*100):0;
     const tComs=comments[t.id]||[],tCount=tComs.length;
     const tComHtml=tComs.map(c=>commentItemHtml(c)).join('');
 
